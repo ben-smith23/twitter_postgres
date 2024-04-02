@@ -116,31 +116,32 @@ def insert_tweet(connection,tweet):
         # create/update the user
         sql = sqlalchemy.sql.text('''
             INSERT INTO users
-            (id_users, created_at, updated_at, id_urls, friends_count, listed_count, favourites_count, statuses_count, protected, verified, screen_name, name, location, description, withheld_in_countries) 
+            (id_users, created_at, updated_at, id_urls, friends_count, listed_count, favourites_count, statuses_count, protected, verified, screen_name, name, location, description) 
             VALUES
-            (:id_users, :created_at, :updated_at, :id_urls, :friends_count, :listed_count, :favourites_count, :statuses_count, :protected, :verified, :screen_name, :name, :location, :description, :withheld_in_countries)
+            (:id_users, :created_at, :updated_at, :id_urls, :friends_count, :listed_count, :favourites_count, :statuses_count, :protected, :verified, :screen_name, :name, :location, :description)
             ON CONFLICT DO NOTHING
             returning id_users
                 ''')
         
         res = connection.execute(sql, {
             'id_users': tweet['user']['id'],
-            'created_at': tweet['user']['created_at'],
-            'updated_at': tweet['created_at'],
-            'id_urls':user_id_urls,
-            'friends_count':tweet['user']['friends_count'],
-            'listed_count':tweet['user']['listed_count'],
-            'favourites_count':tweet['user']['favourites_count'],
-            'statuses_count':tweet['user']['statuses_count'],
-            'protected':tweet['user']['protected'],
-            'verified':tweet['user']['verified'],
-            'screen_name':tweet['user']['screen_name'],
-            'name':tweet['user']['name'],
-            'location':tweet['user']['location'],
-            'description':tweet['user']['description'],
+            'created_at': remove_nulls(tweet['user']['created_at']),
+            'updated_at': remove_nulls(tweet['created_at']),
+            'id_urls': user_id_urls,
+            'friends_count': tweet['user']['friends_count'],
+            'listed_count': tweet['user']['listed_count'],
+            'favourites_count': tweet['user']['favourites_count'],
+            'statuses_count': tweet['user']['statuses_count'],
+            'protected': tweet['user']['protected'],
+            'verified': tweet['user']['verified'],
+            'screen_name': remove_nulls(tweet['user']['screen_name']),
+            'name': remove_nulls(tweet['user']['name']),
+            'location': remove_nulls(tweet['user']['location']),
+            'description': remove_nulls(tweet['user']['description']),
             'withheld_in_countries':tweet['user'].get('withheld_in_countries', None)
-        })
-        
+            })
+
+
         ########################################
         # insert into the tweets table
         ########################################
@@ -224,21 +225,21 @@ def insert_tweet(connection,tweet):
         res = connection.execute(sql, {
             'id_tweets': tweet['id'],
             'id_users': tweet['user']['id'],
-            'created_at': tweet['created_at'],
-            'in_reply_to_status_id': tweet['in_reply_to_status_id'],
-            'in_reply_to_user_id': tweet['in_reply_to_user_id'],
-            'quoted_status_id': tweet['quoted_status_id'],
+            'created_at': remove_nulls(tweet['created_at']),
+            'in_reply_to_status_id': remove_nulls(tweet['in_reply_to_status_id']),
+            'in_reply_to_user_id': remove_nulls(tweet['in_reply_to_user_id']),
+            'quoted_status_id': remove_nulls(tweet.get('quoted_status_id', None)),
             'retweet_count': tweet['retweet_count'],
             'favorite_count': tweet['favorite_count'],
             'quote_count': tweet['quote_count'],
-            'withheld_copyright': tweet['withheld_copyright'],
-            'withheld_in_countries': tweet['withheld_in_countries'],
-            'source': tweet['source'],
-            'text': tweet['text'],
-            'country_code': country_code,
-            'state_code': state_code,
-            'lang': tweet['lang'],
-            'place_name': tweet['place']['full_name'],
+            'withheld_copyright': remove_nulls(tweet.get('withheld_copyright', None)),
+            'withheld_in_countries': remove_nulls(tweet.get('withheld_in_countries', None)),
+            'source': remove_nulls(tweet['source']),
+            'text': remove_nulls(tweet['text']),
+            'country_code': remove_nulls(country_code),
+            'state_code': remove_nulls(state_code),
+            'lang': remove_nulls(tweet['lang']),
+            'place_name': remove_nulls(place_name),
             'geo': None
         })
 
