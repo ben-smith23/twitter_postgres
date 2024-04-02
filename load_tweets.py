@@ -94,7 +94,7 @@ def insert_tweet(connection,tweet):
         sql=sqlalchemy.sql.text('''
         SELECT id_tweets 
         FROM tweets
-        WHERE CAST(id_tweets AS BIGINT) = CAST(:id_tweets AS BIGINT)
+        WHERE id_tweets = :id_tweets
         ''')
         res = connection.execute(sql,{
             'id_tweets':tweet['id'],
@@ -234,11 +234,11 @@ def insert_tweet(connection,tweet):
             'quote_count': tweet['quote_count'],
             'withheld_copyright': tweet.get('withheld_copyright', None),
             'withheld_in_countries':tweet['user'].get('withheld_in_countries', None),
-            'source': remove_nulls(tweet['source']),
+            'source':remove_nulls(tweet.get('source',None)),
             'text': remove_nulls(tweet['text']),
             'country_code': remove_nulls(country_code),
             'state_code': remove_nulls(state_code),
-            'lang': remove_nulls(tweet['lang']),
+            'lang':remove_nulls(tweet.get('lang',None)),
             'place_name': remove_nulls(place_name),
             'geo': None
         })
@@ -260,7 +260,8 @@ def insert_tweet(connection,tweet):
                 (id_tweets, id_urls)
                 VALUES
                 (:id_tweets, :id_urls)
-                    ''')
+                ON CONFLICT DO NOTHING
+                ''')
 
             res = connection.execute(sql, {
                 'id_tweets': tweet['id'],
