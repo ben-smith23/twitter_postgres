@@ -196,22 +196,18 @@ def insert_tweet(connection,tweet):
         #
         # This means that every "in_reply_to_user_id" field must reference a valid entry in the users table.
         # If the id is not in the users table, then you'll need to add it in an "unhydrated" form.
-        in_reply_to_user_id = tweet.get('in_reply_to_user_id')
-        if in_reply_to_user_id is not None:
-            # Prepare SQL to check if the user exists in the 'users' table
-            check_user_exists_sql = sqlalchemy.sql.text('''
-                SELECT EXISTS(SELECT 1 FROM users WHERE id_users = :in_reply_to_user_id)
-            ''')
-            # Execute the query
-            user_exists = connection.execute(check_user_exists_sql, {'in_reply_to_user_id': in_reply_to_user_id}).scalar()
-
-            # If the user does not exist, insert an "unhydrated" entry
-            if not user_exists:
-                insert_unhydrated_user_sql = sqlalchemy.sql.text('''
-                    INSERT INTO users (id_users) VALUES (:in_reply_to_user_id) ON CONFLICT (id_users) DO NOTHING
+        if tweet.get('in_reply_to_user_id',None) is not None:
+            sql=sqlalchemy.sql.text('''
+                INSERT INTO users
+                (id_users)
+                VALUES
+                (:id_users)
+                ON CONFLICT DO NOTHING
                 ''')
-                connection.execute(insert_unhydrated_user_sql, {'in_reply_to_user_id': in_reply_to_user_id})
-        
+            res = connection.execute(sql, {
+                'id_users':tweet['in_reply_to_user_id']
+                })
+
         # insert the tweet
         sql = sqlalchemy.sql.text('''
             INSERT INTO tweets
@@ -233,7 +229,7 @@ def insert_tweet(connection,tweet):
             'favorite_count': tweet['favorite_count'],
             'quote_count': tweet['quote_count'],
             'withheld_copyright': tweet.get('withheld_copyright', None),
-            'withheld_in_countries':tweet['user'].get('withheld_in_countries', None),
+            'withheld_in_countries':tweet.get('withheld_in_countries',None),
             'source':remove_nulls(tweet.get('source',None)),
             'text': remove_nulls(tweet['text']),
             'country_code': remove_nulls(country_code),
