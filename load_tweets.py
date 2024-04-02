@@ -215,7 +215,6 @@ def insert_tweet(connection,tweet):
             VALUES
             (:id_tweets, :id_users, :created_at, :in_reply_to_status_id, :in_reply_to_user_id, :quoted_status_id, :retweet_count, :favorite_count, :quote_count, :withheld_copyright, :withheld_in_countries, :source, :text, :country_code, :state_code, :lang, :place_name, :geo)
             ON CONFLICT DO NOTHING
-            returning id_tweets
         ''')
 
         res = connection.execute(sql, {
